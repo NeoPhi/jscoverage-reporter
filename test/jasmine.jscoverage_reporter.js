@@ -155,7 +155,7 @@
     js.push('    _$jscoverage[file].source = source[file];');
     js.push('  }');
     js.push('}());');
-    writeFile(savePath + '/coverageData.js', js.join('\n'));
+    writeFile(savePath + '/jscoverage-data.js', js.join('\n'));
   };
 
   var JSCoverageReporter = function(savePath) {

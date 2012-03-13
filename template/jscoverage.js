@@ -112,7 +112,7 @@ report			false		false		true
 */
 var jscoverage_isInvertedMode = false;
 var jscoverage_isServer = false;
-var jscoverage_isReport = false;
+var jscoverage_isReport = true;
 
 jscoverage_init(window);
 
