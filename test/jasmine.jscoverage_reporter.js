@@ -101,61 +101,71 @@
     writeFile(savePath + '/emmaCoverage.xml', xml.join('\n'));
   };
 
-  var writeCoverageData = function(savePath, coverage) {
-    var source = {};
-    for (var file in coverage) {
-      if (coverage.hasOwnProperty(file)) {
-        source[file] = coverage[file].source;
+  var jscoverage_pad = function(s) {
+    return '0000'.substr(s.length) + s;
+  }
+
+  var jscoverage_quote = function(s) {
+    return '"' + s.replace(/[\u0000-\u001f"\\\u007f-\uffff]/g, function (c) {
+      switch (c) {
+      case '\b':
+        return '\\b';
+      case '\f':
+        return '\\f';
+      case '\n':
+        return '\\n';
+      case '\r':
+        return '\\r';
+      case '\t':
+        return '\\t';
+      // IE doesn't support this
+      /*
+      case '\v':
+        return '\\v';
+      */
+      case '"':
+        return '\\"';
+      case '\\':
+        return '\\\\';
+      default:
+        return '\\u' + jscoverage_pad(c.charCodeAt(0).toString(16));
       }
+    }) + '"';
+  }
+
+  var jscoverage_serializeCoverageToJSON = function(_$jscoverage) {
+    var json = [];
+    for (var file in _$jscoverage) {
+      if (! _$jscoverage.hasOwnProperty(file)) {
+        continue;
+      }
+
+      var coverage = _$jscoverage[file];
+
+      var array = [];
+      var length = coverage.length;
+      for (var line = 0; line < length; line++) {
+        var value = coverage[line];
+        if (value === undefined || value === null) {
+          value = 'null';
+        }
+        array.push(value);
+      }
+
+      var source = coverage.source;
+      var lines = [];
+      length = source.length;
+      for (var line = 0; line < length; line++) {
+        lines.push(jscoverage_quote(source[line]));
+      }
+
+      json.push(jscoverage_quote(file) + ':{"coverage":[' + array.join(',') + '],"source":[' + lines.join(',') + ']}');
     }
-    var js = [];
-    js.push('(function() {');
-    js.push('  try {');
-    js.push('    if (typeof top === \'object\' && top !== null && typeof top.opener === \'object\' && top.opener !== null) {');
-    js.push('      // this is a browser window that was opened from another window');
-    js.push('  ');
-    js.push('      if (! top.opener._$jscoverage) {');
-    js.push('        top.opener._$jscoverage = {};');
-    js.push('      }');
-    js.push('    }');
-    js.push('  }');
-    js.push('  catch (e) {}');
-    js.push('  ');
-    js.push('  try {');
-    js.push('    if (typeof top === \'object\' && top !== null) {');
-    js.push('      // this is a browser window');
-    js.push('  ');
-    js.push('      try {');
-    js.push('        if (typeof top.opener === \'object\' && top.opener !== null && top.opener._$jscoverage) {');
-    js.push('          top._$jscoverage = top.opener._$jscoverage;');
-    js.push('        }');
-    js.push('      }');
-    js.push('      catch (e) {}');
-    js.push('  ');
-    js.push('      if (! top._$jscoverage) {');
-    js.push('        top._$jscoverage = {};');
-    js.push('      }');
-    js.push('    }');
-    js.push('  }');
-    js.push('  catch (e) {}');
-    js.push('  ');
-    js.push('  try {');
-    js.push('    if (typeof top === \'object\' && top !== null && top._$jscoverage) {');
-    js.push('      _$jscoverage = top._$jscoverage;');
-    js.push('    }');
-    js.push('  }');
-    js.push('  catch (e) {}');
-    js.push('  if (typeof _$jscoverage !== \'object\') {');
-    js.push('    _$jscoverage = {};');
-    js.push('  }');
-    js.push('  var lines = ' + JSON.stringify(coverage) + ';');
-    js.push('  var source = ' + JSON.stringify(source) + ';');
-    js.push('  for (var file in lines) {');
-    js.push('    _$jscoverage[file] = lines[file];');
-    js.push('    _$jscoverage[file].source = source[file];');
-    js.push('  }');
-    js.push('}());');
-    writeFile(savePath + '/jscoverage-data.js', js.join('\n'));
+    return '{' + json.join(',') + '}';
+  }
+
+  var writeCoverageData = function(savePath, coverage) {
+    writeFile(savePath + '/jscoverage.json', jscoverage_serializeCoverageToJSON(coverage));
   };
 
   var JSCoverageReporter = function(savePath) {
