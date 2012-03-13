@@ -10,7 +10,7 @@ var run = function() {
   wrench.copyDirSyncRecursive('template/', 'reports/');
 
   require('./node_modules/jasmine-node/lib/jasmine-node/index.js');
-  require('./test/jasmine.jscoverage_reporter');
+  require('./src/jasmine.jscoverage_reporter');
   var jasmineEnv = jasmine.getEnv();
   jasmineEnv.addReporter(new jasmine.JSCoverageReporter('./reports'));
   require('./node_modules/jasmine-node/lib/jasmine-node/cli.js');

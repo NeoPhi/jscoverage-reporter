@@ -103,7 +103,7 @@
 
   var jscoverage_pad = function(s) {
     return '0000'.substr(s.length) + s;
-  }
+  };
 
   var jscoverage_quote = function(s) {
     return '"' + s.replace(/[\u0000-\u001f"\\\u007f-\uffff]/g, function (c) {
@@ -131,9 +131,10 @@
         return '\\u' + jscoverage_pad(c.charCodeAt(0).toString(16));
       }
     }) + '"';
-  }
+  };
 
   var jscoverage_serializeCoverageToJSON = function(_$jscoverage) {
+    var line;
     var json = [];
     for (var file in _$jscoverage) {
       if (! _$jscoverage.hasOwnProperty(file)) {
@@ -144,7 +145,7 @@
 
       var array = [];
       var length = coverage.length;
-      for (var line = 0; line < length; line++) {
+      for (line = 0; line < length; line++) {
         var value = coverage[line];
         if (value === undefined || value === null) {
           value = 'null';
@@ -155,14 +156,14 @@
       var source = coverage.source;
       var lines = [];
       length = source.length;
-      for (var line = 0; line < length; line++) {
+      for (line = 0; line < length; line++) {
         lines.push(jscoverage_quote(source[line]));
       }
 
       json.push(jscoverage_quote(file) + ':{"coverage":[' + array.join(',') + '],"source":[' + lines.join(',') + ']}');
     }
     return '{' + json.join(',') + '}';
-  }
+  };
 
   var writeCoverageData = function(savePath, coverage) {
     writeFile(savePath + '/jscoverage.json', jscoverage_serializeCoverageToJSON(coverage));
