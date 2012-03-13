@@ -7,7 +7,7 @@ var run = function() {
 
   wrench.rmdirSyncRecursive('reports');
   wrench.mkdirSyncRecursive('reports/coverage');
-  wrench.copyDirSyncRecursive('css/', 'reports/coverage/');
+  wrench.copyDirSyncRecursive('template/', 'reports/');
 
   require('./node_modules/jasmine-node/lib/jasmine-node/index.js');
   require('./test/jasmine.jscoverage_reporter');

@@ -3,12 +3,9 @@
     throw new Exception("jasmine library does not exist in global namespace!");
   }
 
+  // When running in node setup the global variable JSCoverage looks for
   if (!global.top) {
     global.top = {};
-  }
-
-  function escapeInvalidXmlChars(str) {
-    return str.replace(/\&/g, "&amp;").replace(/</g, "&lt;").replace(/\>/g, "&gt;").replace(/\"/g, "&quot;").replace(/\'/g, "&apos;");
   }
 
   var writeFile = function(filename, text) {
@@ -38,28 +35,6 @@
     }
   };
   
-  var renderCoverage = function(covered, total) {
-    var coverage = Math.round(covered / total * 100);
-    var html = '';
-    html += '<td class="coverage">';
-    html += '  <div class="pctGraph">';
-    html += '    <div class="covered" style="width: ' + coverage + 'px;"></div>';
-    html += '  </div>'
-    html += '  <span class="pct">' + coverage + '%</span>';
-    html += '</td>';
-    return html;
-  };
-
-  var renderStyle = function() {
-    var html = '';
-    html += '    <link rel="stylesheet" type="text/css" href="jscoverage-highlight.css"/>\n';
-    html += '    <link rel="stylesheet" type="text/css" href="jscoverage.css"/>\n';
-    html += '    <!--[if IE]>\n';
-    html += '    <link rel="stylesheet" type="text/css" href="jscoverage-ie.css">\n';
-    html += '    <![endif]-->\n';
-    return html;
-  };
-
   var calculateCoverage = function(stats, metric) {
     var covered = stats[metric + 'Covered'];
     var total = stats[metric + 'Total'];
@@ -67,85 +42,7 @@
     return coverage + '% (' + covered + '/' + total + ')';
   };
 
-  var reportData = function(coverage, stats) {
-    var xml = '';
-    xml += '  <data>\n';
-    xml += '    <all name="all classes">\n';
-    xml += '      <coverage type="class, %" value="' + calculateCoverage(stats, 'classes') + '"/>\n';
-    xml += '      <coverage type="method, %" value="' + calculateCoverage(stats, 'methods') + '"/>\n';
-    xml += '      <coverage type="block, %" value="' + calculateCoverage(stats, 'methods') + '"/>\n';
-    xml += '      <coverage type="line, %" value="' + calculateCoverage(stats, 'srclines') + '"/>\n';
-    xml += '    </all>\n';
-    xml += '  </data>\n';
-    return xml;
-  };
-
-  var dumpFileCoverage = function(savePath, file, outputFile, htmlFragment) {
-    var output = savePath + '/coverage/' + outputFile;
-    var html = '';
-    html += '<html>\n';
-    html += '  <head>\n';
-    html += '    <title>\n';
-    html += '      ' + escapeInvalidXmlChars(file) + '\n';
-    html += '    </title>\n';
-    html += renderStyle();
-    html += '  </head>\n';
-    html += '  <body>\n';
-    html += '  <div id="mainDiv">\n';
-    html += '  <div id="tabPages" class="TabPages">\n';
-    html += '  <div class="TabPage selected">\n';
-    html += '  <div id="fileDiv">' + escapeInvalidXmlChars(file) + '</div>\n'
-    html += '  <div id="sourceDiv">\n';
-    html += '    <table id="sourceTable">\n';
-    html += htmlFragment;
-    html += '    </table>\n';
-    html += '    </div>\n';
-    html += '    </div>\n';
-    html += '    </div>\n';
-    html += '    </div>\n';
-    html += '  </body>\n';
-    html += '</html>\n';
-    writeFile(output, html);
-  };
-
-  var dumpSummary = function(savePath, stats, htmlFragment) {
-    var output = savePath + '/coverage/index.html';
-    var html = '';
-    html += '<html>\n';
-    html += '  <head>\n';
-    html += '    <title>Summary</title>\n';
-    html += renderStyle();
-    html += '  </head>\n';
-    html += '  <body>\n';
-    html += '  <div id="mainDiv">\n';
-    html += '  <div id="tabPages" class="TabPages">\n';
-    html += '  <div class="TabPage selected">\n';
-    html += '    <div id="summaryDiv">\n'
-    html += '    <table id="summaryTable">\n';
-    html += '      <tr id="headerRow">';
-    html += '        <th class="leftColumn">File</th>';
-    html += '        <th>Statements</th>';
-    html += '        <th>Executed</th>';
-    html += '        <th>Coverage</th>';
-    html += '      </tr>\n';
-    html += '      <tr id="summaryTotals">';
-    html += '        <td class="leftColumn"><span class="title">Total:</span><span>' + stats.srcfilesTotal + '</span></td>';
-    html += '        <td class="numeric">' + stats.srclinesTotal + '</td>';
-    html += '        <td class="numeric">' + stats.srclinesCovered + '</td>';
-    html += renderCoverage(stats.srclinesCovered, stats.srclinesTotal);
-    html += '      </tr>\n';
-    html += htmlFragment;
-    html += '    </table>\n';
-    html += '    </div>\n';
-    html += '    </div>\n';
-    html += '    </div>\n';
-    html += '    </div>\n';
-    html += '  </body>\n';
-    html += '</html>\n';
-    writeFile(output, html);
-  };
-
-  var reportStats = function(savePath, coverage) {
+  var calculateStats = function(coverage) {
     var stats = {
       packagesCovered : 1,
       packagesTotal : 1,
@@ -158,7 +55,6 @@
       srclinesCovered : 0,
       srclinesTotal : 0
     };
-    var summaryHtmlFragment = '';
     for (var file in coverage) {
       if (coverage.hasOwnProperty(file)) {
         stats.classesCovered += 1;
@@ -167,58 +63,99 @@
         stats.srcfilesTotal += 1;
         var srclinesTotal = 0;
         var srclinesCovered = 0;
-        var htmlFragment = '';
         for (var i = 0; i < coverage[file].source.length; i += 1) {
-          htmlFragment += '<tr><td class="numeric">' + (i + 1) + '</td>';
           if (coverage[file][i + 1] !== void 0) {
             srclinesTotal += 1;
             if (coverage[file][i + 1] > 0) {
               srclinesCovered += 1;
-              htmlFragment += '<td class="g numeric">';
-            } else {
-              htmlFragment += '<td class="r numeric">';
             }
-            htmlFragment += coverage[file][i + 1];
-          } else {
-            htmlFragment += '<td>&nbsp;';
           }
-          htmlFragment += '</td><td><pre>' + coverage[file].source[i];
-          htmlFragment += '</pre></td></tr>\n';
         }
         stats.srclinesTotal += srclinesTotal;
         stats.srclinesCovered += srclinesCovered;
-        var outputFile = file.replace(/[^a-z0-9A-Z]/g, '_') + '.html';
-        dumpFileCoverage(savePath, file, outputFile, htmlFragment);
-        summaryHtmlFragment += '<tr>';
-        summaryHtmlFragment += '<td class="leftColumn"><a href="' + outputFile + '">' + escapeInvalidXmlChars(file) + '</a></td>';
-        summaryHtmlFragment += '<td class="numeric">' + srclinesTotal + '</td>';
-        summaryHtmlFragment += '<td class="numeric">' + srclinesCovered + '</td>';
-        summaryHtmlFragment += renderCoverage(srclinesCovered, srclinesTotal);
-        summaryHtmlFragment += '</tr>\n';
       }
     }
-    dumpSummary(savePath, stats, summaryHtmlFragment);
-    var xml = '';
-    xml += '  <stats>\n';
-    xml += '    <packages value="' + stats.packagesTotal + '"/>\n';
-    xml += '    <classes value="' + stats.classesTotal + '"/>\n';
-    xml += '    <methods value="' + stats.methodsTotal + '"/>\n';
-    xml += '    <srcfiles value="' + stats.srcfilesTotal + '"/>\n';
-    xml += '    <srclines value="' + stats.srclinesTotal + '"/>\n';
-    xml += '  </stats>\n';
-    return {
-      stats : stats,
-      xml : xml
-    };
+    return stats;
   };
 
-  var report = function(savePath, coverage) {
-    var xml = '<report>\n';
-    var stats = reportStats(savePath, coverage);
-    xml += stats.xml;
-    xml += reportData(coverage, stats.stats);
-    xml += '</report>\n';
-    writeFile(savePath + '/coverage.xml', xml);
+  var writeEmmaReport = function(savePath, coverage) {
+    var stats = calculateStats(coverage);
+    var xml = [];
+    xml.push('<report>');
+    xml.push('  <stats>');
+    xml.push('    <packages value="' + stats.packagesTotal + '"/>');
+    xml.push('    <classes value="' + stats.classesTotal + '"/>');
+    xml.push('    <methods value="' + stats.methodsTotal + '"/>');
+    xml.push('    <srcfiles value="' + stats.srcfilesTotal + '"/>');
+    xml.push('    <srclines value="' + stats.srclinesTotal + '"/>');
+    xml.push('  </stats>');
+    xml.push('  <data>');
+    xml.push('    <all name="all classes">');
+    xml.push('      <coverage type="class, %" value="' + calculateCoverage(stats, 'classes') + '"/>');
+    xml.push('      <coverage type="method, %" value="' + calculateCoverage(stats, 'methods') + '"/>');
+    xml.push('      <coverage type="block, %" value="' + calculateCoverage(stats, 'methods') + '"/>');
+    xml.push('      <coverage type="line, %" value="' + calculateCoverage(stats, 'srclines') + '"/>');
+    xml.push('    </all>');
+    xml.push('  </data>');
+    xml.push('</report>');
+    writeFile(savePath + '/emmaCoverage.xml', xml.join('\n'));
+  };
+
+  var writeCoverageData = function(savePath, coverage) {
+    var source = {};
+    for (var file in coverage) {
+      if (coverage.hasOwnProperty(file)) {
+        source[file] = coverage[file].source;
+      }
+    }
+    var js = [];
+    js.push('(function() {');
+    js.push('  try {');
+    js.push('    if (typeof top === \'object\' && top !== null && typeof top.opener === \'object\' && top.opener !== null) {');
+    js.push('      // this is a browser window that was opened from another window');
+    js.push('  ');
+    js.push('      if (! top.opener._$jscoverage) {');
+    js.push('        top.opener._$jscoverage = {};');
+    js.push('      }');
+    js.push('    }');
+    js.push('  }');
+    js.push('  catch (e) {}');
+    js.push('  ');
+    js.push('  try {');
+    js.push('    if (typeof top === \'object\' && top !== null) {');
+    js.push('      // this is a browser window');
+    js.push('  ');
+    js.push('      try {');
+    js.push('        if (typeof top.opener === \'object\' && top.opener !== null && top.opener._$jscoverage) {');
+    js.push('          top._$jscoverage = top.opener._$jscoverage;');
+    js.push('        }');
+    js.push('      }');
+    js.push('      catch (e) {}');
+    js.push('  ');
+    js.push('      if (! top._$jscoverage) {');
+    js.push('        top._$jscoverage = {};');
+    js.push('      }');
+    js.push('    }');
+    js.push('  }');
+    js.push('  catch (e) {}');
+    js.push('  ');
+    js.push('  try {');
+    js.push('    if (typeof top === \'object\' && top !== null && top._$jscoverage) {');
+    js.push('      _$jscoverage = top._$jscoverage;');
+    js.push('    }');
+    js.push('  }');
+    js.push('  catch (e) {}');
+    js.push('  if (typeof _$jscoverage !== \'object\') {');
+    js.push('    _$jscoverage = {};');
+    js.push('  }');
+    js.push('  var lines = ' + JSON.stringify(coverage) + ';');
+    js.push('  var source = ' + JSON.stringify(source) + ';');
+    js.push('  for (var file in lines) {');
+    js.push('    _$jscoverage[file] = lines[file];');
+    js.push('    _$jscoverage[file].source = source[file];');
+    js.push('  }');
+    js.push('}());');
+    writeFile(savePath + '/coverageData.js', js.join('\n'));
   };
 
   var JSCoverageReporter = function(savePath) {
@@ -236,10 +173,10 @@
     },
 
     reportRunnerResults : function(runner) {
-      report(this.savePath, global.top._$jscoverage);
+      var coverage = global.top._$jscoverage;
+      writeEmmaReport(this.savePath, coverage);
+      writeCoverageData(this.savePath, coverage);
     },
-
-    writeFile : writeFile,
 
     log : function(str) {
       var console = jasmine.getGlobal().console;
@@ -252,4 +189,4 @@
 
   // export public
   jasmine.JSCoverageReporter = JSCoverageReporter;
-})();
+}());
