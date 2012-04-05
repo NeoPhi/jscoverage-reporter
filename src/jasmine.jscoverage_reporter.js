@@ -1,13 +1,16 @@
 (function() {
   if (!jasmine) {
-    throw new Exception("jasmine library does not exist in global namespace!");
+    throw new Exception('jasmine library does not exist in global namespace!');
   }
 
   // When running in node setup the global variable JSCoverage looks for
-  if (!global.top) {
-    global.top = {};
-  }
+  try {
+    if (global && !global.top) {
+      global.top = {};
+    }
+  } catch(e) {}
 
+  // writeFile from: https://github.com/larrymyers/jasmine-reporters
   var writeFile = function(filename, text) {
     // Rhino
     try {
@@ -15,24 +18,20 @@
       out.write(text);
       out.close();
       return;
-    } catch (e) {
-    }
-    // PhantomJS, via pyphantomjs and the saveToFile plugin
-    // http://dev.umaclan.com/projects/pyphantomjs/wiki/Plugins#Save-to-File
+    } catch (e) {}
+    // PhantomJS, via a method injected by phantomjs-testrunner.js
     try {
-      phantom.saveToFile(text, filename);
+      __phantom_writeFile(filename, text);
       return;
-    } catch (f) {
-    }
-    // Node
+    } catch (f) {}
+    // Node.js
     try {
-      var fs = require("fs");
-      var fd = fs.openSync(filename, "w");
+      var fs = require('fs');
+      var fd = fs.openSync(filename, 'w');
       fs.writeSync(fd, text, 0);
       fs.closeSync(fd);
       return;
-    } catch (g) {
-    }
+    } catch (g) {}
   };
   
   var calculateCoverage = function(stats, metric) {
@@ -44,16 +43,16 @@
 
   var calculateStats = function(coverage) {
     var stats = {
-      packagesCovered : 1,
-      packagesTotal : 1,
-      classesCovered : 0,
-      classesTotal : 0,
-      methodsCovered : 1,
-      methodsTotal : 1,
-      srcfilesCovered : 0,
-      srcfilesTotal : 0,
-      srclinesCovered : 0,
-      srclinesTotal : 0
+      packagesCovered: 1,
+      packagesTotal: 1,
+      classesCovered: 0,
+      classesTotal: 0,
+      methodsCovered: 1,
+      methodsTotal: 1,
+      srcfilesCovered: 0,
+      srcfilesTotal: 0,
+      srclinesCovered: 0,
+      srclinesTotal: 0
     };
     for (var file in coverage) {
       if (coverage.hasOwnProperty(file)) {
@@ -98,13 +97,15 @@
     xml.push('    </all>');
     xml.push('  </data>');
     xml.push('</report>');
-    writeFile(savePath + '/emmaCoverage.xml', xml.join('\n'));
+    writeFile(savePath + '/coverage.xml', xml.join('\n'));
   };
 
+  // jscoverage_pad from: http://siliconforks.com/jscoverage/
   var jscoverage_pad = function(s) {
     return '0000'.substr(s.length) + s;
   };
 
+  // jscoverage_quote from: http://siliconforks.com/jscoverage/
   var jscoverage_quote = function(s) {
     return '"' + s.replace(/[\u0000-\u001f"\\\u007f-\uffff]/g, function (c) {
       switch (c) {
@@ -133,8 +134,8 @@
     }) + '"';
   };
 
+  // jscoverage_serializeCoverageToJSON from: http://siliconforks.com/jscoverage/
   var jscoverage_serializeCoverageToJSON = function(_$jscoverage) {
-    var line;
     var json = [];
     for (var file in _$jscoverage) {
       if (! _$jscoverage.hasOwnProperty(file)) {
@@ -144,8 +145,9 @@
       var coverage = _$jscoverage[file];
 
       var array = [];
+      var line;
       var length = coverage.length;
-      for (line = 0; line < length; line++) {
+      for (line = 0; line < length; line += 1) {
         var value = coverage[line];
         if (value === undefined || value === null) {
           value = 'null';
@@ -156,7 +158,7 @@
       var source = coverage.source;
       var lines = [];
       length = source.length;
-      for (line = 0; line < length; line++) {
+      for (line = 0; line < length; line += 1) {
         lines.push(jscoverage_quote(source[line]));
       }
 
@@ -169,27 +171,34 @@
     writeFile(savePath + '/jscoverage.json', jscoverage_serializeCoverageToJSON(coverage));
   };
 
+  var getCoverage = function() {
+    try {
+      return top._$jscoverage;
+    } catch(e) {}
+    return {};
+  };
+
   var JSCoverageReporter = function(savePath) {
     this.savePath = savePath || '';
   };
 
   JSCoverageReporter.prototype = {
-    reportSpecStarting : function(spec) {
+    reportSpecStarting: function(spec) {
     },
 
-    reportSpecResults : function(spec) {
+    reportSpecResults: function(spec) {
     },
 
-    reportSuiteResults : function(suite) {
+    reportSuiteResults: function(suite) {
     },
 
-    reportRunnerResults : function(runner) {
-      var coverage = global.top._$jscoverage;
+    reportRunnerResults: function(runner) {
+      var coverage = getCoverage();
       writeEmmaReport(this.savePath, coverage);
       writeCoverageData(this.savePath, coverage);
     },
 
-    log : function(str) {
+    log: function(str) {
       var console = jasmine.getGlobal().console;
 
       if (console && console.log) {
@@ -198,6 +207,5 @@
     }
   };
 
-  // export public
   jasmine.JSCoverageReporter = JSCoverageReporter;
 }());

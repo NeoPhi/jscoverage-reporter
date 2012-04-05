@@ -1,12 +1,12 @@
+if (process.argv.length < 3) {
+  console.log('Usage: node report.js <report directory>');
+  process.exit(1);
+}
+
 var http = require('http');
 var url = require('url');
 var fs = require('fs');
 var path = require('path');
-
-if (process.argv.length < 3) {
-  console.log('Usage: node viewReport.js <report directory>');
-  process.exit(1);
-}
 
 var MIME = {
   'default': 'application/octet-stream',
@@ -16,7 +16,7 @@ var MIME = {
   '.css': 'text/css',
   '.gif': 'image/gif'
 };
-var PORT = 8080;
+var PORT = process.env.PORT || 8080;
 
 http.createServer(function(request, response) {
   var parsedUrl = url.parse(request.url);
