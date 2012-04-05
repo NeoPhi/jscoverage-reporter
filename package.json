@@ -1,7 +1,27 @@
 {
   "name": "jscoverage-reporter",
   "version": "0.1.0",
+  "description": "JSCoverage reporter for Jasmine",
+  "homepage": "https://github.com/NeoPhi/jscoverage-reporter",
+  "keywords": ["testing", "jasmine", "jscoverage"],
+  "licenses": [{
+    "type": "MIT",
+    "url": "http://github.com/NeoPhi/jscoverage-reporter/raw/master/LICENSE"
+  }],
+  "author": {
+    "name": "Daniel Rinehart",
+    "email": "danielr@neophi.com",
+    "url": "http://danielr.neophi.com/"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/NeoPhi/jscoverage-reporter.git"
+  },
+  "bugs": {
+    "url": "https://github.com/NeoPhi/jscoverage-reporter/issues"
+  },  
   "private": true,
+  "main": "src/jasmine.jscoverage_reporter.js",
   "devDependencies": {
     "jshint": "0.5.8",
     "jasmine-node": "1.0.21",
