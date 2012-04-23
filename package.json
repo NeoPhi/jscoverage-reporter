@@ -20,7 +20,6 @@
   "bugs": {
     "url": "https://github.com/NeoPhi/jscoverage-reporter/issues"
   },  
-  "private": true,
   "main": "src/jasmine.jscoverage_reporter.js",
   "devDependencies": {
     "jshint": "0.5.8",
