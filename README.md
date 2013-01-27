@@ -1,6 +1,6 @@
 # Recomendation
 
-I highly recommend switching to using [Istanbul](https://github.com/gotwarlost/istanbul) for code coverage. With a simple line in like `"test": "istanbul test jasmine-node -- test"` in your `package.json` script block you get optional code coverage integrated with jasmine, without the need to run a separate instrumentation step. Istanbul includes detailed branch and function metrics which JSCoverage does not.
+I highly recommend switching to using [Istanbul](https://github.com/gotwarlost/istanbul) for code coverage. With the simple line `"test": "istanbul test jasmine-node -- test"` in your `package.json` scripts block you get optional code coverage integrated with jasmine, without the need to run a separate instrumentation step. Istanbul includes detailed branch and function metrics which JSCoverage does not.
 
 # jscoverage-reporter - JSCoverage Report for Jasmine
 
